@@ -37,10 +37,11 @@ def main():
     database = "database.db"
 
     sql_create_users_table = """ CREATE TABLE IF NOT EXISTS Users (
-                                        first_name text NOT NULL,
-                                        last_name text,
-                                        email text,
-                                        password text
+                                        first_name text CHAR(20) NOT NULL,
+                                        last_name text CHAR(20) NOT NULL,
+                                        email text CHAR(20) NOT NULL,
+                                        password text CHAR(20) NOT NULL,
+                                        PRIMARY KEY (email)
                                     ); """
 
     sql_create_admins_table = """CREATE TABLE IF NOT EXISTS Admins (
@@ -63,24 +64,27 @@ def main():
     else:
         print("Error! cannot create the database connection.")
 
-def submit():
+def register():
 
     # connect to database
     conn = sql.connect("database.db")
     # create cursor
     cursor = conn.cursor()
     #insert into table
-    cursor.execute("INSERT INTO Users VALUES (:first_name, :last_name, :email, :password)",
-                   {
-                       'first_name':fName.get(),
-                       'last_name':lName.get(),
-                       'email':email.get(),
-                       'password':password.get()
-                   })
-    fName.delete(0, END)
-    lName.delete(0, END)
-    email.delete(0, END)
-    password.delete(0, END)
+    try:
+        cursor.execute("INSERT INTO Users VALUES (:first_name, :last_name, :email, :password)",
+                    {
+                        'first_name':fName.get(),
+                        'last_name':lName.get(),
+                        'email':email.get(),
+                        'password':password.get()
+                    })
+        fName.delete(0, END)
+        lName.delete(0, END)
+        email.delete(0, END)
+        password.delete(0, END)
+    except Error as e:
+        print("Account already exists")
 
     cursor.execute("SELECT rowid, * FROM users")
     items = cursor.fetchall()
@@ -90,16 +94,32 @@ def submit():
 
         conn.commit()
 
+def login():
+    # connect to database
+    conn = sql.connect("database.db")
+    # create cursor
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM Users WHERE email=? AND password=?", (emailLogin.get(), passwordLogin.get()))
+
+    account = cursor.fetchone()
+
+    if account is not None:
+        for row in account:
+            print(row)
+    else:
+        print("Email or password are incorrect")
+
+
+#Main program
 root = Tk()
 root.title('Register a user account')
-#root.iconbitmap('cat.ico')
-#root.geometry('400x400')
+root.iconbitmap('cat.ico')
 entry = Entry(root)
 
 main()
 
-#text box
-
+#Entries
 fName = Entry(root, width=30)
 fName.grid(row=2, column=2, padx=20)
 
@@ -112,8 +132,14 @@ email.grid(row=4, column=2, padx=20)
 password = Entry(root, width=30)
 password.grid(row=5, column=2, padx=20)
 
-#textbox label
-Label(root, text="Register").grid(row=1, column=1)
+emailLogin = Entry(root, width=30)
+emailLogin.grid(row=8, column=2, padx=20)
+
+passwordLogin = Entry(root, width=30)
+passwordLogin.grid(row=9, column=2, padx=20)
+
+#Labels
+Label(root, text="Register").grid(row=1, column=2)
 
 fNameLabel = Label(root, text="First name")
 fNameLabel.grid(row=2, column=1)
@@ -127,9 +153,20 @@ emailLabel.grid(row=4, column=1)
 passwordLabel = Label(root, text="Password")
 passwordLabel.grid(row=5, column=1)
 
-#Create submit button
-submitBtn = Button(root, text="Add user account", command=submit)
-submitBtn.grid(row=6, column=1, columnspan=2, pady=10, padx=10, ipadx=100)
+Label(root, text="Login").grid(row=7, column=2)
+
+emailLabel = Label(root, text="Email")
+emailLabel.grid(row=8, column=1)
+
+passwordLabel = Label(root, text="Password")
+passwordLabel.grid(row=9, column=1)
+
+#Buttons
+submitBtn = Button(root, text="Add user account", command=register)
+submitBtn.grid(row=6, column=2, columnspan=1, pady=5, padx=5, ipadx=0)
+
+loginBtn = Button(root, text="Login", command=login)
+loginBtn.grid(row=10, column=2, columnspan=1, pady=5, padx=5, ipadx=0)
 
 
 root.mainloop()
