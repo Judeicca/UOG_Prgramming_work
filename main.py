@@ -1,7 +1,8 @@
-import os
+import runpy
 from tkinter import *
 import sqlite3 as sql
 from sqlite3 import Error
+import loginPage
 
 
 def create_connection(db_file):
@@ -45,10 +46,18 @@ def main():
                                     ); """
 
     sql_create_admins_table = """CREATE TABLE IF NOT EXISTS Admins (
-                                        first_name text NOT NULL,
-                                        last_name text,
-                                        email text,
-                                        password text
+                                        first_name text CHAR(20) NOT NULL,
+                                        last_name text CHAR(20),
+                                        email text CHAR(20),
+                                        password text CHAR(20),
+                                        PRIMARY KEY (email)
+                                );"""
+
+    sql_create_stock_table = """CREATE TABLE IF NOT EXISTS Stock (
+                                        stockID PRIMARY KEY
+                                        name text,
+                                        qty,
+                                        qty left
                                 );"""
 
     # create a database connection
@@ -61,8 +70,12 @@ def main():
 
         # create tasks table
         create_table(conn, sql_create_admins_table)
+
+        # create stock table
+        create_table(conn,sql_create_stock_table)
     else:
         print("Error! cannot create the database connection.")
+
 
 def register():
 
@@ -85,6 +98,10 @@ def register():
         password.delete(0, END)
     except Error as e:
         print("Account already exists")
+        fName.delete(0, END)
+        lName.delete(0, END)
+        email.delete(0, END)
+        password.delete(0, END)
 
     cursor.execute("SELECT rowid, * FROM users")
     items = cursor.fetchall()
@@ -100,16 +117,32 @@ def login():
     # create cursor
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM Users WHERE email=? AND password=?", (emailLogin.get(), passwordLogin.get()))
+    cursor.execute("SELECT Users.email, Users.password FROM Users INNER JOIN Admins")
 
     account = cursor.fetchone()
 
     if account is not None:
+        emailLogin.delete(0, END)
+        passwordLogin.delete(0, END)
         for row in account:
             print(row)
+        root.destroy()
+        loginPage.homePage()
     else:
-        print("Email or password are incorrect")
+        print("Error")
 
+
+def createAdmin():
+    # connect to database
+    conn = sql.connect("database.db")
+    # create cursor
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("INSERT INTO Admins (first_name, last_name, email, password) VALUES ('Admin', '', 'admin@org.com', '@Password123')")
+    except Error:
+        pass
+    conn.commit()
 
 #Main program
 root = Tk()
@@ -118,6 +151,7 @@ root.iconbitmap('cat.ico')
 entry = Entry(root)
 
 main()
+createAdmin()
 
 #Entries
 fName = Entry(root, width=30)
