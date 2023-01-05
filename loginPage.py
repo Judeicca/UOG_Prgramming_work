@@ -6,7 +6,7 @@ from PIL import ImageTk, Image
 
 def homePage():
     root = Tk()
-    root.iconbitmap('cat.ico')
+    #root.iconbitmap('cat.ico')
     root.title('Home Page')
     # connect to database
     conn = sql.connect("database.db")
