@@ -1,7 +1,6 @@
 from tkinter import *
 import sqlite3 as sql
 from sqlite3 import Error
-import loginPage
 
 
 def create_connection(db_file):
@@ -32,6 +31,33 @@ def create_table(conn, create_table_sql):
     except Error as e:
         print(e)
 
+def createStaff():
+    # connect to database
+    conn = sql.connect("database.db")
+    # create cursor
+    cursor = conn.cursor()
+
+    #Try to add a default staff account into the staff table, however if an error arrises then this statement will be passed
+    try:
+        cursor.execute("INSERT INTO Staff (first_name, last_name, email, password) VALUES ('S', 'Taff', 'S', 'S')")
+    except Error:
+        pass
+    #Commit the changes to the database
+    conn.commit()
+
+def createAdmin():
+    # connect to database
+    conn = sql.connect("database.db")
+    # create cursor
+    cursor = conn.cursor()
+
+    #Try to add a default admin account into the admins table, however if an error arrises then this statement will be passed
+    try:
+        cursor.execute("INSERT INTO Admins (first_name, last_name, email, password) VALUES ('Admin', '', 'admin@org.com', '@Password123')")
+    except Error:
+        pass
+    #Commit the changes to the database
+    conn.commit()
 
 def main():
     database = "database.db"
@@ -45,6 +71,14 @@ def main():
                                     ); """
 
     sql_create_admins_table = """CREATE TABLE IF NOT EXISTS Admins (
+                                        first_name text CHAR(20) NOT NULL,
+                                        last_name text CHAR(20),
+                                        email text CHAR(20),
+                                        password text CHAR(20),
+                                        PRIMARY KEY (email)
+                                );"""
+
+    sql_create_staff_table = """CREATE TABLE IF NOT EXISTS Staff (
                                         first_name text CHAR(20) NOT NULL,
                                         last_name text CHAR(20),
                                         email text CHAR(20),
@@ -70,7 +104,13 @@ def main():
         # create tasks table
         create_table(conn, sql_create_admins_table)
 
+        #create staff table
+        create_table(conn, sql_create_staff_table)
+
         # create stock table
         create_table(conn,sql_create_stock_table)
     else:
         print("Error! cannot create the database connection.")
+
+    createAdmin()
+    createStaff()
